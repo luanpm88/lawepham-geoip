@@ -1,0 +1,12 @@
+{
+    "name": "lawepham/geoip",
+    "description": "Get location information from IP",
+    "authors": [
+        {
+            "name": "Luan Pham",
+            "email": "luanpm88@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {}
+}
