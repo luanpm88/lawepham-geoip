@@ -35,5 +35,7 @@ class LaweGeoIpProvider extends ServiceProvider
                 return new NekudoGeoIpSerivce();
             }
         });
+        
+        $this->app->bind('geoip', 'Acelle\Library\Contracts\GeoIpInterface');
     }
 }

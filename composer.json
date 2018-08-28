@@ -7,7 +7,6 @@
             "email": "luanpm88@gmail.com"
         }
     ],
-    "minimum-stability": "dev",
     "require": {},
     "autoload": {
         "psr-4": {
