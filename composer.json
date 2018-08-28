@@ -8,5 +8,11 @@
         }
     ],
     "minimum-stability": "dev",
-    "require": {}
+    "require": {},
+    "autoload": {
+        "psr-4": {
+            "Lawepham\\Geoip\\": "src/"
+        }
+    },
+    "minimum-stability": "stable"
 }
