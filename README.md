@@ -35,7 +35,7 @@ Add the following to the main `composer.json`
     }
 ],
 "require": [
-    "louisitvn/log-viewer": "dev-master",
+    "louisitvn/log-viewer": "1.0",
 ]
 
 ```
