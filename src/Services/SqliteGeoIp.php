@@ -146,6 +146,10 @@ class SqliteGeoIp extends SQLite3 implements GeoIpInterface
         return $this->longitude;
     }
     
+    /**
+     * Set up the service, download the database file
+     *
+     */
     public function setup()
     {
         if (file_exists($this->dbpath)) {
@@ -155,31 +159,54 @@ class SqliteGeoIp extends SQLite3 implements GeoIpInterface
             }    
         }
 
-        file_put_contents($this->dbpath, fopen($this->sourceUrl, 'r'));
+        file_put_contents($this->dbpath, fopen($this->getRedirectFinalTarget($this->sourceUrl), 'r'));
         if ($this->isValid()) {
             // Just done
             return;
         } else {
-            throw new Exception("Invalid database. It could be a download failure");
+            throw new Exception("Invalid database signature");
         }
     }
     
+    /**
+     * Set Source URL and Source MD5 Hash
+     * 
+     * @param String $url
+     * @param String $hash
+     * @return void
+     */
     public function setSource($url, $hash = null)
     {
         $this->sourceUrl = $url;
         $this->sourceHash = $hash;
     }
     
+    /**
+     * Check if the source hash does match the current source database file
+     * 
+     * @return Boolean $isValid
+     */
     public function isValid()
     {
         return ($this->getDbFileHash() == $this->sourceHash);
     }
     
+    /**
+     * Get the database file's MD5 hash
+     * 
+     * @return String $hash
+     */
     private function getDbFileHash()
     {
         return hash_file('md5', $this->dbpath);
     }
     
+    /**
+     * Generate a LONG INT for a given IPv4 address
+     * 
+     * @param String $ipV4
+     * @return LongInt $ipno
+     */
     private function dot2LongIpv4($ip) {
         if ($ip == "" || is_null($ip)) {
             return 0; // a specicial location
@@ -189,7 +216,12 @@ class SqliteGeoIp extends SQLite3 implements GeoIpInterface
         }
     }
     
-    // Function to convert IP address to IP number (IPv6)
+    /**
+     * Generate a LONG INT for a given IPv6 address
+     * 
+     * @param String $ipV6
+     * @return LongInt $ipno
+     */
     private function dot2LongIpv6($ip) {
         $int = inet_pton($ip);
         $bits = 15;
@@ -205,5 +237,27 @@ class SqliteGeoIp extends SQLite3 implements GeoIpInterface
         }
         $ipv6long = gmp_strval(gmp_init($ipv6long, 2), 10);
         return $ipv6long;
+    }
+    
+    /**
+     * Get the actual download URL or the given URL (follow 301, 302 redirects)
+     * 
+     * @param String $url
+     * @return String $finalUrl
+     */
+    public function getRedirectFinalTarget($url)
+    {
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_NOBODY, 1);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1); // follow redirects
+        curl_setopt($ch, CURLOPT_AUTOREFERER, 1); // set referer on redirect
+        curl_exec($ch);
+        $target = curl_getinfo($ch, CURLINFO_EFFECTIVE_URL);
+        curl_close($ch);
+        if ($target) {
+            return $target;
+        } else {
+            throw new Exception('Cannot resolve GeoIP source\'s download link');
+        }
     }
 }

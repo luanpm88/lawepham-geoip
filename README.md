@@ -11,16 +11,14 @@ Add the following to the main `composer.json`
     }
 ],
 "require": [
-    "louisitvn/log-viewer": "dev-master",
+    "lawepham/geoip": "dev-master",
 ]
 
 ```
-
-Then add the service to config/app.php
-
-Then 
+Then
 ```sh
-php artisan config:cache
+rm -fr vendor/lawepham
+php composer.phar require lawepham/geoip "dev-master"
 ```
 
 # Production environment
@@ -35,15 +33,13 @@ Add the following to the main `composer.json`
     }
 ],
 "require": [
-    "louisitvn/log-viewer": "1.0",
+    "lawepham/geoip": "1.0",
 ]
 
 ```
-
-Then add the service to config/app.php
-
 Then
 ```sh
-php artisan config:cache
+rm -fr vendor/lawepham
+php composer.phar require lawepham/geoip "1.0"
 ```
 
