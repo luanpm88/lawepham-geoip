@@ -198,6 +198,9 @@ class SqliteGeoIp extends SQLite3 implements GeoIpInterface
      */
     private function getDbFileHash()
     {
+        if (!file_exists($this->dbpath)) {
+            return null;
+        }
         return hash_file('md5', $this->dbpath);
     }
     
