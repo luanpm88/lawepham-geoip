@@ -153,10 +153,10 @@ class SqliteGeoIp extends SQLite3 implements GeoIpInterface
     public function setup()
     {
         if (file_exists($this->dbpath)) {
-            if ($this->isValid()) {
+            //if ($this->isValid()) {
                 // already set up
                 return;
-            }    
+            //}
         }
 
         file_put_contents($this->dbpath, fopen($this->getRedirectFinalTarget($this->sourceUrl), 'r'));
