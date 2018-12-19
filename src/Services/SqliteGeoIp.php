@@ -153,14 +153,25 @@ class SqliteGeoIp extends SQLite3 implements GeoIpInterface
     public function setup()
     {
         if (file_exists($this->dbpath)) {
-            //if ($this->isValid()) {
+            if ($this->isValid()) {
                 // already set up
                 return;
-            //}
+            } else {
+                // LaravelLog::info('Invalid db, reloading...');
+            }
         }
+        $downloadUrl = $this->getRedirectFinalTarget($this->sourceUrl);
+        $curlSession = curl_init();
+        curl_setopt($curlSession, CURLOPT_URL, $downloadUrl);
+        curl_setopt($curlSession, CURLOPT_BINARYTRANSFER, true);
+        curl_setopt($curlSession, CURLOPT_RETURNTRANSFER, true);
+    
+        $data = curl_exec($curlSession);
+        curl_close($curlSession);
 
-        file_put_contents($this->dbpath, fopen($this->getRedirectFinalTarget($this->sourceUrl), 'r'));
+        file_put_contents($this->dbpath, $data);
         if ($this->isValid()) {
+            // LaravelLog::info('Done, valid!');
             // Just done
             return;
         } else {
