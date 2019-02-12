@@ -160,21 +160,28 @@ class SqliteGeoIp extends SQLite3 implements GeoIpInterface
                 // LaravelLog::info('Invalid db, reloading...');
             }
         }
+        
         $downloadUrl = $this->getRedirectFinalTarget($this->sourceUrl);
+        set_time_limit(0);
+        $fp = fopen($this->dbpath, 'w+');
         $curlSession = curl_init();
         curl_setopt($curlSession, CURLOPT_URL, $downloadUrl);
         curl_setopt($curlSession, CURLOPT_BINARYTRANSFER, true);
         curl_setopt($curlSession, CURLOPT_RETURNTRANSFER, true);
-    
-        $data = curl_exec($curlSession);
+        curl_setopt($curlSession, CURLOPT_TIMEOUT, 3600);
+        curl_setopt($curlSession, CURLOPT_FILE, $fp); 
+        curl_setopt($curlSession, CURLOPT_FOLLOWLOCATION, true);
+        curl_exec($curlSession);
+        
+        $error = curl_error($curlSession);
         curl_close($curlSession);
+        fclose($fp);
 
-        file_put_contents($this->dbpath, $data);
-        if ($this->isValid()) {
-            // LaravelLog::info('Done, valid!');
-            // Just done
-            return;
-        } else {
+        if (!empty($error)) {
+            throw new Exception("Error downloading GeoIP database: " . $error);
+        }
+        
+        if (!$this->isValid()) {
             throw new Exception("Invalid database signature");
         }
     }
