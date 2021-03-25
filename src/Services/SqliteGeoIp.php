@@ -53,7 +53,7 @@ class SqliteGeoIp extends SQLite3 implements GeoIpInterface
             $ipno = $this->dot2LongIpv6($ip);
             $table = 'v6';
         } else {
-            $ipno = null;
+            throw new Exception("Invalid IP address {$ip}");
         }
                 
         $result = $this->query("SELECT * FROM {$table} WHERE {$ipno} <= ip_to LIMIT 1");
@@ -66,6 +66,11 @@ class SqliteGeoIp extends SQLite3 implements GeoIpInterface
             $this->latitude = $row['latitude'];
             $this->longitude = $row['longitude'];
         }
+
+        if (empty($this->countryCode)) {
+            throw new Exception("Cannot resolve IP address {$ip} ({$ipno})");
+        }
+
         $this->close();
     }
     
