@@ -29,6 +29,10 @@ class SqliteGeoIp extends SQLite3 implements GeoIpInterface
      */
     public function __construct($dbpath)
     {
+        if (!function_exists('gmp_strval')) {
+            throw new Exception("PHP GMP functions are not available on the hosting server, please check with IT staff. See https://www.php.net/manual/en/gmp.installation.php");
+        }
+
         $this->dbpath = $dbpath;
         $this->open($this->dbpath);
         if (!$this) {
