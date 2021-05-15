@@ -1,6 +1,6 @@
 <?php
 namespace Lawepham\Geoip\Services;
-  
+
 class Ip2LocationDbService
 {
     const API_URL = 'http://geoip.nekudo.com/api/';

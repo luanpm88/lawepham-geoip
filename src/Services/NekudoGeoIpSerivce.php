@@ -2,7 +2,7 @@
 namespace Lawepham\Geoip\Services;
 
 use Acelle\Library\Contracts\GeoIpInterface;
-  
+
 class NekudoGeoIpSerivce implements GeoIpInterface
 {
     const API_URL = 'http://geoip.nekudo.com/api/';

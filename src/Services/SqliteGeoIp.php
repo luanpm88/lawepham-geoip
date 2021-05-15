@@ -4,7 +4,7 @@ namespace Lawepham\Geoip\Services;
 use Acelle\Library\Contracts\GeoIpInterface;
 use SQLite3;
 use Exception;
-  
+
 class SqliteGeoIp extends SQLite3 implements GeoIpInterface
 {
     const DB_FILE_NAME = 'ip2locationdb11.db';
@@ -50,10 +50,10 @@ class SqliteGeoIp extends SQLite3 implements GeoIpInterface
      */
     public function resolveIp($ip)
     {
-        if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {    
+        if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
             $ipno = $this->dot2LongIpv4($ip);
             $table = 'v4';
-        } else if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
+        } elseif (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
             $ipno = $this->dot2LongIpv6($ip);
             $table = 'v6';
         } else {
@@ -178,7 +178,7 @@ class SqliteGeoIp extends SQLite3 implements GeoIpInterface
         curl_setopt($curlSession, CURLOPT_BINARYTRANSFER, true);
         curl_setopt($curlSession, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($curlSession, CURLOPT_TIMEOUT, 3600);
-        curl_setopt($curlSession, CURLOPT_FILE, $fp); 
+        curl_setopt($curlSession, CURLOPT_FILE, $fp);
         curl_setopt($curlSession, CURLOPT_FOLLOWLOCATION, true);
         curl_exec($curlSession);
         
@@ -197,7 +197,7 @@ class SqliteGeoIp extends SQLite3 implements GeoIpInterface
     
     /**
      * Set Source URL and Source MD5 Hash
-     * 
+     *
      * @param String $url
      * @param String $hash
      * @return void
@@ -210,7 +210,7 @@ class SqliteGeoIp extends SQLite3 implements GeoIpInterface
     
     /**
      * Check if the source hash does match the current source database file
-     * 
+     *
      * @return Boolean $isValid
      */
     public function isValid()
@@ -220,7 +220,7 @@ class SqliteGeoIp extends SQLite3 implements GeoIpInterface
     
     /**
      * Get the database file's MD5 hash
-     * 
+     *
      * @return String $hash
      */
     private function getDbFileHash()
@@ -233,11 +233,12 @@ class SqliteGeoIp extends SQLite3 implements GeoIpInterface
     
     /**
      * Generate a LONG INT for a given IPv4 address
-     * 
+     *
      * @param String $ipV4
      * @return LongInt $ipno
      */
-    private function dot2LongIpv4($ip) {
+    private function dot2LongIpv4($ip)
+    {
         if ($ip == "" || is_null($ip)) {
             return 0; // a specicial location
         } else {
@@ -248,17 +249,18 @@ class SqliteGeoIp extends SQLite3 implements GeoIpInterface
     
     /**
      * Generate a LONG INT for a given IPv6 address
-     * 
+     *
      * @param String $ipV6
      * @return LongInt $ipno
      */
-    private function dot2LongIpv6($ip) {
+    private function dot2LongIpv6($ip)
+    {
         $int = inet_pton($ip);
         $bits = 15;
         $ipv6long = 0;
-        while($bits >= 0){
+        while ($bits >= 0) {
             $bin = sprintf("%08b", (ord($int[$bits])));
-            if($ipv6long){
+            if ($ipv6long) {
                 $ipv6long = $bin . $ipv6long;
             } else {
                 $ipv6long = $bin;
@@ -271,7 +273,7 @@ class SqliteGeoIp extends SQLite3 implements GeoIpInterface
     
     /**
      * Get the actual download URL or the given URL (follow 301, 302 redirects)
-     * 
+     *
      * @param String $url
      * @return String $finalUrl
      */
