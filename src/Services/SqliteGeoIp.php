@@ -2,18 +2,15 @@
 namespace Lawepham\Geoip\Services;
 
 use Acelle\Library\Contracts\GeoIpInterface;
-use SQLite3;
 use Exception;
-
-class SqliteGeoIp extends SQLite3 implements GeoIpInterface
+use GeoIp2\Database\Reader;
+  
+class SqliteGeoIp implements GeoIpInterface
 {
-    const DB_FILE_NAME = 'ip2locationdb11.db';
-    
-    protected $connection;
-    protected $dbpath;
+    protected $reader;
     public $sourceUrl;
     protected $sourceHash;
-    
+
     protected $ip;
     protected $countryCode;
     protected $countryName;
@@ -29,17 +26,7 @@ class SqliteGeoIp extends SQLite3 implements GeoIpInterface
      */
     public function __construct($dbpath)
     {
-        if (!function_exists('gmp_strval')) {
-            throw new Exception("PHP GMP functions are not available on the hosting server, please check with IT staff. See https://www.php.net/manual/en/gmp.installation.php");
-        }
-
-        $this->dbpath = $dbpath;
-        $this->open($this->dbpath);
-        if (!$this) {
-            echo $this->lastErrorMsg();
-        } else {
-            // echo "Opened database successfully\n";
-        }
+        $this->reader = new Reader($dbpath);
     }
     
     /**
@@ -50,32 +37,24 @@ class SqliteGeoIp extends SQLite3 implements GeoIpInterface
      */
     public function resolveIp($ip)
     {
-        if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
-            $ipno = $this->dot2LongIpv4($ip);
-            $table = 'v4';
-        } elseif (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
-            $ipno = $this->dot2LongIpv6($ip);
-            $table = 'v6';
+        $record = $this->reader->city($ip);
+
+        $this->countryCode = $record->country->isoCode;
+        $this->countryName = $record->country->name;
+
+        // Get the first subdivision (US only, for states)
+        $subdivisions = $record->subdivisions;
+        if (!empty($subdivisions)) {
+            $subdivision = $subdivisions[0];
+            $this->regionName = $subdivision->name;
         } else {
-            throw new Exception("Invalid IP address {$ip}");
-        }
-                
-        $result = $this->query("SELECT * FROM {$table} WHERE {$ipno} <= ip_to LIMIT 1");
-        while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
-            $this->countryCode = $row['country_code'];
-            $this->countryName = $row['country_name'];
-            $this->regionName = $row['region_name'];
-            $this->city = $row['city_name'];
-            $this->zipcode = $row['zip_code'];
-            $this->latitude = $row['latitude'];
-            $this->longitude = $row['longitude'];
+            $this->regionName = $record->city->name;
         }
 
-        if (empty($this->countryCode)) {
-            throw new Exception("Cannot resolve IP address {$ip} ({$ipno})");
-        }
-
-        $this->close();
+        $this->city = $record->city->name;
+        $this->zipcode = $record->postal->code;
+        $this->latitude = $record->location->latitude;
+        $this->longitude = $record->location->longitude;
     }
     
     /**
@@ -178,7 +157,7 @@ class SqliteGeoIp extends SQLite3 implements GeoIpInterface
         curl_setopt($curlSession, CURLOPT_BINARYTRANSFER, true);
         curl_setopt($curlSession, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($curlSession, CURLOPT_TIMEOUT, 3600);
-        curl_setopt($curlSession, CURLOPT_FILE, $fp);
+        curl_setopt($curlSession, CURLOPT_FILE, $fp); 
         curl_setopt($curlSession, CURLOPT_FOLLOWLOCATION, true);
         curl_exec($curlSession);
         
@@ -197,7 +176,7 @@ class SqliteGeoIp extends SQLite3 implements GeoIpInterface
     
     /**
      * Set Source URL and Source MD5 Hash
-     *
+     * 
      * @param String $url
      * @param String $hash
      * @return void
@@ -210,7 +189,7 @@ class SqliteGeoIp extends SQLite3 implements GeoIpInterface
     
     /**
      * Check if the source hash does match the current source database file
-     *
+     * 
      * @return Boolean $isValid
      */
     public function isValid()
@@ -220,7 +199,7 @@ class SqliteGeoIp extends SQLite3 implements GeoIpInterface
     
     /**
      * Get the database file's MD5 hash
-     *
+     * 
      * @return String $hash
      */
     private function getDbFileHash()
@@ -232,48 +211,8 @@ class SqliteGeoIp extends SQLite3 implements GeoIpInterface
     }
     
     /**
-     * Generate a LONG INT for a given IPv4 address
-     *
-     * @param String $ipV4
-     * @return LongInt $ipno
-     */
-    private function dot2LongIpv4($ip)
-    {
-        if ($ip == "" || is_null($ip)) {
-            return 0; // a specicial location
-        } else {
-            $ips = explode(".", $ip);
-            return ($ips[3] + $ips[2] * 256 + $ips[1] * 256 * 256 + $ips[0] * 256 * 256 * 256);
-        }
-    }
-    
-    /**
-     * Generate a LONG INT for a given IPv6 address
-     *
-     * @param String $ipV6
-     * @return LongInt $ipno
-     */
-    private function dot2LongIpv6($ip)
-    {
-        $int = inet_pton($ip);
-        $bits = 15;
-        $ipv6long = 0;
-        while ($bits >= 0) {
-            $bin = sprintf("%08b", (ord($int[$bits])));
-            if ($ipv6long) {
-                $ipv6long = $bin . $ipv6long;
-            } else {
-                $ipv6long = $bin;
-            }
-            $bits--;
-        }
-        $ipv6long = gmp_strval(gmp_init($ipv6long, 2), 10);
-        return $ipv6long;
-    }
-    
-    /**
      * Get the actual download URL or the given URL (follow 301, 302 redirects)
-     *
+     * 
      * @param String $url
      * @return String $finalUrl
      */
