@@ -9,7 +9,8 @@ class SqliteGeoIp implements GeoIpInterface
 {
     protected $reader;
     public $sourceUrl;
-    protected $sourceHash;
+    public $sourceHash;
+    public $dbpath;
 
     protected $ip;
     protected $countryCode;
@@ -26,7 +27,7 @@ class SqliteGeoIp implements GeoIpInterface
      */
     public function __construct($dbpath)
     {
-        $this->reader = new Reader($dbpath);
+        $this->dbpath = $dbpath;
     }
     
     /**
@@ -37,6 +38,10 @@ class SqliteGeoIp implements GeoIpInterface
      */
     public function resolveIp($ip)
     {
+        if (!$reader) {
+            $this->reader = new Reader($this->dbpath);
+        }
+
         $record = $this->reader->city($ip);
 
         $this->countryCode = $record->country->isoCode;
