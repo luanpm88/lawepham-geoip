@@ -28,6 +28,9 @@ class SqliteGeoIp implements GeoIpInterface
     public function __construct($dbpath)
     {
         $this->dbpath = $dbpath;
+        // Do not initialize the $reader object here
+        // as the $dbpath file might not be present
+        // Then initialization of the object is for using the $this->setup() method
     }
     
     /**
