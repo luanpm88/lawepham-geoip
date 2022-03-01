@@ -41,7 +41,7 @@ class SqliteGeoIp implements GeoIpInterface
      */
     public function resolveIp($ip)
     {
-        if (!$reader) {
+        if (is_null($this->reader)) {
             $this->reader = new Reader($this->dbpath);
         }
 
