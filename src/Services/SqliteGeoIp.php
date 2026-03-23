@@ -1,7 +1,7 @@
 <?php
 namespace Lawepham\Geoip\Services;
 
-use Acelle\Library\Contracts\GeoIpInterface;
+use App\Library\Contracts\GeoIpInterface;
 use Exception;
 use GeoIp2\Database\Reader;
   

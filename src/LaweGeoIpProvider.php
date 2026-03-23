@@ -6,7 +6,7 @@ use Lawepham\Geoip\Services\NekudoGeoIpSerivce;
 use Lawepham\Geoip\Services\Ip2LocationDbService;
 use Lawepham\Geoip\Services\SqliteGeoIp;
 use Illuminate\Support\ServiceProvider;
-use Acelle\Model\Setting;
+use App\Model\Setting;
 use Exception;
 
 class LaweGeoIpProvider extends ServiceProvider
@@ -28,7 +28,7 @@ class LaweGeoIpProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->app->bind('Acelle\Library\Contracts\GeoIpInterface', function ($app) {
+        $this->app->bind('App\Library\Contracts\GeoIpInterface', function ($app) {
             
             // Deprecated
             //     $tables = \DB::select('SHOW TABLES LIKE "ip2location_%"');
